@@ -135,6 +135,21 @@ _default_customer_portal_settings: OrganizationCustomerPortalSettings = {
 }
 
 
+class OrganizationCryptoSettings(TypedDict):
+    enabled: bool
+    ethereum_address: str | None
+    base_address: str | None
+    arbitrum_address: str | None
+
+
+_default_crypto_settings: OrganizationCryptoSettings = {
+    "enabled": False,
+    "ethereum_address": None,
+    "base_address": None,
+    "arbitrum_address": None,
+}
+
+
 class OrganizationStatus(StrEnum):
     CREATED = "created"
     ONBOARDING_STARTED = "onboarding_started"
@@ -271,6 +286,10 @@ class Organization(RateLimitGroupMixin, RecordModel):
 
     customer_portal_settings: Mapped[OrganizationCustomerPortalSettings] = (
         mapped_column(JSONB, nullable=False, default=_default_customer_portal_settings)
+    )
+
+    crypto_settings: Mapped[OrganizationCryptoSettings] = mapped_column(
+        JSONB, nullable=False, default=_default_crypto_settings
     )
 
     @property

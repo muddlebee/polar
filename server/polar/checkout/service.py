@@ -16,6 +16,7 @@ from polar.checkout.guard import has_product_checkout
 from polar.checkout.schemas import (
     MINIMUM_PRICE_AMOUNT,
     CheckoutConfirm,
+    CheckoutConfirmCrypto,
     CheckoutConfirmStripe,
     CheckoutCreate,
     CheckoutCreatePublic,
@@ -87,6 +88,7 @@ from polar.observability.checkout_metrics import (
 )
 from polar.order.service import order as order_service
 from polar.organization.service import organization as organization_service
+from polar.payment.service import payment as payment_service
 from polar.postgres import AsyncReadSession, AsyncSession
 from polar.posthog import posthog
 from polar.product.guard import (
@@ -1177,6 +1179,63 @@ class CheckoutService:
                     )
                     if trial_already_redeemed:
                         raise TrialAlreadyRedeemed(checkout)
+
+        elif checkout.payment_processor == PaymentProcessor.crypto:
+            # Handle crypto payments
+            if not isinstance(checkout_confirm, CheckoutConfirmCrypto):
+                errors.append(
+                    {
+                        "type": "value_error",
+                        "loc": ("body",),
+                        "msg": "Crypto payment confirmation required.",
+                        "input": None,
+                    }
+                )
+
+            if len(errors) > 0:
+                raise PolarRequestValidationError(errors)
+
+            assert isinstance(checkout_confirm, CheckoutConfirmCrypto)
+
+            # Create or update customer
+            async with self._create_or_update_customer(
+                session, auth_subject, checkout
+            ) as customer:
+                checkout.customer = customer
+
+                # Create payment record from transaction
+                payment = await payment_service.create_from_crypto_transaction(
+                    session,
+                    tx_hash=checkout_confirm.tx_hash,
+                    chain_id=checkout_confirm.chain_id,
+                    from_address=checkout_confirm.from_address,
+                    amount=checkout.total_amount,
+                    currency=checkout.currency,
+                    token_address=checkout_confirm.token_address,
+                    checkout=checkout,
+                    order=None,
+                )
+
+                # Store crypto transaction metadata
+                checkout.payment_processor_metadata = {
+                    **checkout.payment_processor_metadata,
+                    "tx_hash": checkout_confirm.tx_hash,
+                    "chain_id": checkout_confirm.chain_id,
+                    "from_address": checkout_confirm.from_address.lower(),
+                    "token_address": checkout_confirm.token_address.lower()
+                    if checkout_confirm.token_address
+                    else None,
+                }
+
+                # Mark as confirmed and immediately handle success
+                checkout.status = CheckoutStatus.confirmed
+                session.add(checkout)
+                await session.flush()
+
+                # Immediately create order and grant benefits
+                checkout = await self.handle_success(
+                    session, checkout, payment=payment, payment_method=None
+                )
 
         if not checkout.is_payment_form_required:
             enqueue_job("checkout.handle_free_success", checkout_id=checkout.id)

@@ -48,6 +48,8 @@ import AmountLabel from './AmountLabel'
 import CustomFieldInput from './CustomFieldInput'
 import MeteredPriceLabel from './MeteredPriceLabel'
 import PolarLogo from './PolarLogo'
+import { CryptoPaymentElement, CRYPTO_ENABLED } from '../crypto/components/CryptoPaymentElement'
+import { CryptoProvider } from '../providers/CryptoProvider'
 
 const DetailRow = ({
   title,
@@ -1046,10 +1048,95 @@ const DummyCheckoutForm = (props: CheckoutFormProps) => {
 const CheckoutForm = (props: CheckoutFormProps) => {
   const {
     checkout: { paymentProcessor },
+    checkout,
+    disabled,
   } = props
 
+  // When CRYPTO_ENABLED is true, show only crypto payment
+  if (CRYPTO_ENABLED) {
+    return (
+      <div className="flex flex-col gap-y-8">
+        {/* Product Summary */}
+        <div className="flex flex-col gap-y-4">
+          {checkout.product && (
+            <div className="dark:border-polar-700 rounded-xl border border-gray-200 p-4">
+              <h3 className="font-medium dark:text-white">{checkout.product.name}</h3>
+              {checkout.product.description && (
+                <p className="dark:text-polar-400 mt-1 text-sm text-gray-600">
+                  {checkout.product.description}
+                </p>
+              )}
+              <div className="mt-3 flex items-center justify-between">
+                <span className="dark:text-polar-400 text-sm text-gray-500">Total</span>
+                <span className="text-lg font-semibold dark:text-white">
+                  ${((checkout.totalAmount ?? 0) / 100).toFixed(2)} {checkout.currency?.toUpperCase()}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Crypto Payment */}
+        <CryptoProvider>
+          <CryptoPaymentElement
+            checkout={checkout}
+            disabled={disabled}
+            onPaymentSuccess={async (txHash, chainId, fromAddress) => {
+              console.log('Crypto payment confirmed:', { txHash, chainId, fromAddress })
+              // TODO: Call backend to confirm payment and fulfill order
+            }}
+            onPaymentError={(error) => {
+              console.error('Crypto payment error:', error)
+            }}
+          />
+        </CryptoProvider>
+
+        {/* Powered by Polar */}
+        <a
+          href="https://polar.sh?utm_source=checkout"
+          className="dark:text-polar-600 flex w-full flex-row items-center justify-center gap-x-3 text-sm text-gray-400"
+          target="_blank"
+        >
+          <span>Powered by</span>
+          <PolarLogo className="h-5" />
+        </a>
+      </div>
+    )
+  }
+
+  // Default behavior: Show Stripe + Crypto
   if (paymentProcessor === 'stripe') {
-    return <StripeCheckoutForm {...props} />
+    return (
+      <>
+        <StripeCheckoutForm {...props} />
+        <div className="mt-8">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="dark:border-polar-700 w-full border-t border-gray-200" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="dark:bg-polar-900 dark:text-polar-500 bg-white px-3 text-gray-500">
+                Or pay with crypto
+              </span>
+            </div>
+          </div>
+          <div className="mt-6">
+            <CryptoProvider>
+              <CryptoPaymentElement
+                checkout={checkout}
+                disabled={disabled}
+                onPaymentSuccess={async (txHash, chainId, fromAddress) => {
+                  console.log('Crypto payment confirmed:', { txHash, chainId, fromAddress })
+                }}
+                onPaymentError={(error) => {
+                  console.error('Crypto payment error:', error)
+                }}
+              />
+            </CryptoProvider>
+          </div>
+        </div>
+      </>
+    )
   }
   return <DummyCheckoutForm {...props} />
 }

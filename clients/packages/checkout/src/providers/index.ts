@@ -10,3 +10,5 @@ export {
   CheckoutProvider,
   useCheckout,
 } from './CheckoutProvider'
+export { CryptoProvider } from './CryptoProvider'
+

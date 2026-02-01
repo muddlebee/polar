@@ -428,7 +428,44 @@ class CheckoutConfirmStripe(CheckoutConfirmBase):
     )
 
 
-CheckoutConfirm = CheckoutConfirmStripe
+class CheckoutConfirmCrypto(CheckoutConfirmBase):
+    """Confirm a checkout session using a cryptocurrency transaction."""
+
+    tx_hash: str = Field(
+        ...,
+        description=(
+            "Transaction hash from the blockchain "
+            "(e.g., Ethereum transaction hash)."
+        ),
+        min_length=66,
+        max_length=66,
+        pattern="^0x[a-fA-F0-9]{64}$",
+    )
+    chain_id: int = Field(
+        ...,
+        description=(
+            "Chain ID where the transaction was made "
+            "(e.g., 1 for Ethereum Mainnet, 11155111 for Sepolia)."
+        ),
+        gt=0,
+    )
+    from_address: str = Field(
+        ...,
+        description="Wallet address that sent the payment.",
+        min_length=42,
+        max_length=42,
+        pattern="^0x[a-fA-F0-9]{40}$",
+    )
+    token_address: str | None = Field(
+        None,
+        description="Token contract address for ERC-20 payments (None for native ETH).",
+        min_length=42,
+        max_length=42,
+        pattern="^0x[a-fA-F0-9]{40}$",
+    )
+
+
+CheckoutConfirm = CheckoutConfirmStripe | CheckoutConfirmCrypto
 
 
 class CheckoutOpened(Schema):

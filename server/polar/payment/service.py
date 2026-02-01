@@ -209,5 +209,65 @@ class PaymentService:
 
         return await repository.update(payment)
 
+    async def create_from_crypto_transaction(
+        self,
+        session: AsyncSession,
+        *,
+        tx_hash: str,
+        chain_id: int,
+        from_address: str,
+        amount: int,
+        currency: str,
+        token_address: str | None,
+        checkout: Checkout | None,
+        order: Order | None,
+    ) -> Payment:
+        """
+        Create a payment record from a crypto transaction.
+        Frontend verifies the transaction on-chain before calling this.
+        """
+        repository = PaymentRepository.from_session(session)
+
+        # Check if payment already exists (idempotency via tx_hash)
+        payment = await repository.get_by_processor_id(
+            PaymentProcessor.crypto, tx_hash
+        )
+        if payment is not None:
+            return payment
+
+        # Create new payment record
+        payment = Payment(
+            id=generate_uuid(),
+            processor=PaymentProcessor.crypto,
+            processor_id=tx_hash,  # Transaction hash is unique identifier
+            status=PaymentStatus.succeeded,
+            amount=amount,
+            currency=currency,
+            method="crypto_wallet",
+            method_metadata={
+                "chain_id": chain_id,
+                "from_address": from_address.lower(),
+                "token_address": token_address.lower() if token_address else None,
+            },
+            processor_metadata={
+                "tx_hash": tx_hash,
+                "chain_id": chain_id,
+            },
+        )
+
+        payment.checkout = checkout
+        payment.order = order
+
+        if checkout is not None:
+            payment.organization = checkout.organization
+            payment.customer_email = checkout.customer_email
+        elif order is not None:
+            payment.organization = order.organization
+            payment.customer_email = order.customer.email
+        else:
+            raise UnlinkedPaymentError(tx_hash)
+
+        return await repository.update(payment)
+
 
 payment = PaymentService()

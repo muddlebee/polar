@@ -11,6 +11,7 @@ class Platforms(StrEnum):
 
 class PaymentProcessor(StrEnum):
     stripe = "stripe"
+    crypto = "crypto"
 
 
 class TaxProcessor(StrEnum):
