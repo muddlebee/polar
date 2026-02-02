@@ -294,15 +294,15 @@ export function CryptoPaymentElement({
           </Button>
         </div>
       ) : (
-        <div className="flex flex-col gap-y-4">
+        <div className="flex flex-col gap-y-6">
           {/* Connected Wallet Display */}
-          <div className="dark:bg-polar-800 dark:border-polar-700 flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+          <div className="dark:bg-polar-900 dark:border-polar-700 flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
             <div className="flex items-center gap-x-3">
               <div className="dark:bg-polar-700 flex h-8 w-8 items-center justify-center rounded-full bg-gray-200">
                 <WalletIcon className="dark:text-polar-400 h-4 w-4 text-gray-600" />
               </div>
               <div>
-                <p className="dark:text-polar-400 text-xs text-gray-500">Connected</p>
+                <p className="dark:text-polar-500 text-xs text-gray-500">Connected</p>
                 <p className="font-mono text-sm font-medium dark:text-white">
                   {address?.slice(0, 6)}...{address?.slice(-4)}
                 </p>
@@ -317,11 +317,11 @@ export function CryptoPaymentElement({
           </div>
 
           {/* Network Selection */}
-          <div className="flex flex-col gap-y-2">
-            <label className="dark:text-polar-300 text-sm font-medium text-gray-700">
-              Network
+          <div className="flex flex-col gap-y-3">
+            <label className="dark:text-polar-400 text-sm font-medium text-gray-600">
+              Select Network
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-3">
               {SUPPORTED_CHAINS.map((supportedChain) => {
                 const isSelected = selectedChainId === supportedChain.id
                 const isCurrentChain = chain?.id === supportedChain.id
@@ -331,35 +331,20 @@ export function CryptoPaymentElement({
                     onClick={() => handleChainSelect(supportedChain.id)}
                     disabled={isPending || !!txHash}
                     className={cn(
-                      'relative flex items-center justify-center rounded-xl px-3 py-2.5 text-sm font-medium transition-all',
+                      'relative flex items-center justify-center rounded-full px-4 py-2.5 text-sm font-medium transition-all',
                       isSelected
                         ? 'bg-blue-500 text-white dark:bg-blue-600'
-                        : 'dark:bg-polar-800 dark:text-polar-300 dark:hover:bg-polar-700 bg-gray-100 text-gray-700 hover:bg-gray-200',
+                        : 'dark:bg-polar-800 dark:text-polar-300 dark:hover:bg-polar-700 dark:border-polar-700 border border-gray-200 bg-white text-gray-700 hover:bg-gray-50',
                       (isPending || !!txHash) && 'cursor-not-allowed opacity-50'
                     )}
                   >
                     {supportedChain.name.replace(' Sepolia', '')}
                     {isSelected && isCurrentChain && (
-                      <CheckIcon className="absolute right-2 h-4 w-4" />
+                      <CheckIcon className="ml-1.5 h-4 w-4" />
                     )}
                   </button>
                 )
               })}
-            </div>
-          </div>
-
-          {/* Payment Summary */}
-          <div className="dark:bg-polar-800 dark:border-polar-700 flex flex-col gap-y-2 rounded-xl border border-gray-200 bg-gray-50 p-4">
-            <div className="flex items-center justify-between">
-              <span className="dark:text-polar-400 text-sm text-gray-600">Amount</span>
-              <div className="text-right">
-                <p className="text-lg font-semibold dark:text-white">
-                  ${displayAmount} {currency.toUpperCase()}
-                </p>
-                <p className="dark:text-polar-500 text-xs text-gray-500">
-                  Pay with {actualAmount} USDC
-                </p>
-              </div>
             </div>
           </div>
 
@@ -399,7 +384,7 @@ export function CryptoPaymentElement({
                       : 'text-blue-600 dark:text-blue-400'
                   )}
                 >
-                  {confirmations}/{requiredConfirmations}
+                  {/* {confirmations}/{requiredConfirmations} */}
                 </span>
               </div>
               
@@ -429,7 +414,7 @@ export function CryptoPaymentElement({
 
           {/* Action Button */}
           {!txHash && (
-            <>
+            <div className="pt-2">
               {isWrongNetwork ? (
                 <Button
                   onClick={handleSwitchNetwork}
@@ -448,10 +433,10 @@ export function CryptoPaymentElement({
                   size="lg"
                   className="w-full"
                 >
-                  Pay {actualAmount} USDC (${displayAmount})
+                  Pay ${displayAmount}
                 </Button>
               )}
-            </>
+            </div>
           )}
         </div>
       )}

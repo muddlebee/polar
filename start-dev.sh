@@ -104,12 +104,12 @@ WORKER_PID=$(start_service "worker" "$SERVER_DIR" "uv run task worker")
 echo -e "${GREEN}  ✓ Worker started (PGID: $WORKER_PID)${NC}"
 echo -e "     Logs: .dev-logs/worker.log"
 
-# Step 5: Start frontend
-echo -e "${BLUE}[5/5]${NC} Starting frontend..."
-FRONTEND_PID=$(start_service "frontend" "$CLIENTS_DIR" "pnpm dev-web")
-echo -e "${GREEN}  ✓ Frontend started (PGID: $FRONTEND_PID)${NC}"
-echo -e "     Logs: .dev-logs/frontend.log"
-echo -e "     URL: ${BLUE}http://127.0.0.1:3000${NC}"
+# # Step 5: Start frontend
+# echo -e "${BLUE}[5/5]${NC} Starting frontend..."
+# FRONTEND_PID=$(start_service "frontend" "$CLIENTS_DIR" "pnpm dev-web")
+# echo -e "${GREEN}  ✓ Frontend started (PGID: $FRONTEND_PID)${NC}"
+# echo -e "     Logs: .dev-logs/frontend.log"
+# echo -e "     URL: ${BLUE}http://127.0.0.1:3000${NC}"
 
 # Wait for services to be ready
 echo ""
