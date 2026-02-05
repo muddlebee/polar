@@ -251,33 +251,6 @@ Get your project ID at: https://cloud.walletconnect.com/
 4. **Manual address entry** - no UI for org settings yet
 5. **No backend verification** - trusts tx_hash (audit job recommended for production)
 
-## Production Roadmap
-
-### Phase 2: Token Support
-- Add ERC-20 token transfers (USDC, USDT, DAI)
-- Price oracle integration for volatile tokens (ETH, native currencies)
-- Multi-token support in checkout UI
-
-### Phase 3: Verification & Security
-- Background job to verify transactions on-chain
-- Admin dashboard "verify" button
-- Rate limiting on crypto confirmations
-- Fraud detection (wallet blacklists, transaction patterns)
-
-### Phase 4: Mainnet
-- Mainnet chain support
-- Organization approval workflow
-- KYC/AML compliance checks
-- Higher confirmation thresholds
-- Gas price estimation
-
-### Phase 5: Advanced Features
-- Smart contract allowances for recurring payments
-- Gasless transactions (meta-transactions)
-- Multi-sig organization wallets
-- Automatic crypto → fiat conversion
-- Refund handling workflow
-
 ## Files Changed
 
 ### Backend
